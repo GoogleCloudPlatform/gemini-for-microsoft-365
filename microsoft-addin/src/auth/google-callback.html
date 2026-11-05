@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Google Sign-In Complete</title>
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #faf9f8;
+            color: #323130;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .icon {
+            font-size: 32px;
+            margin-bottom: 12px;
+        }
+        h3 { margin: 0 0 8px 0; font-size: 16px; color: #107c41; }
+        p { margin: 0; font-size: 13px; color: #605e5c; }
+    </style>
+</head>
+<body>
+    <div class="icon">✅</div>
+    <h3>Google Connected!</h3>
+    <p>Closing window and returning to your Office application...</p>
+
+    <script>
+        (function() {
+            // Parse URL fragment (#access_token=...&expires_in=...)
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            const expiresIn = parseInt(params.get('expires_in') || '3600', 10);
+            const error = params.get('error') || new URLSearchParams(window.location.search).get('error');
+
+            function sendMessageAndClose() {
+                const messagePayload = accessToken ? 
+                    JSON.stringify({ status: 'success', google_token: accessToken, expires_in: expiresIn }) :
+                    JSON.stringify({ status: 'error', error: error || 'No access token received from Google.' });
+
+                // 1. Send to Office taskpane via Office Dialog API
+                if (typeof Office !== 'undefined' && Office.context && Office.context.ui && Office.context.ui.messageParent) {
+                    try {
+                        Office.context.ui.messageParent(messagePayload);
+                        return;
+                    } catch (e) {
+                        console.warn('Office messageParent failed:', e);
+                    }
+                }
+
+                // 2. Fallback to standard window.opener for standalone browser popups
+                if (window.opener && window.opener.postMessage) {
+                    try {
+                        const targetOrigin = window.location.origin;
+                        window.opener.postMessage({ type: 'GOOGLE_AUTH_RESULT', payload: JSON.parse(messagePayload) }, targetOrigin);
+                        window.close();
+                    } catch (e) {
+                        console.warn('postMessage to opener failed:', e);
+                    }
+                }
+            }
+
+            if (typeof Office !== 'undefined' && Office.onReady) {
+                Office.onReady(() => {
+                    sendMessageAndClose();
+                });
+            } else {
+                sendMessageAndClose();
+            }
+        })();
+    </script>
+</body>
+</html>

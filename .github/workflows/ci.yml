@@ -1,0 +1,199 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: CI & Security Scan
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - uat-security-hardening
+  pull_request:
+    branches:
+      - main
+      - staging
+      - uat-security-hardening
+  workflow_dispatch:
+    inputs:
+      full_scan:
+        description: "Run full codebase scan (instead of incremental modified-files scan)"
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Unit & Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r authproxy/requirements.txt
+          pip install pytest
+
+      - name: Run Auth Proxy Unit Tests
+        run: |
+          cd authproxy
+          python -m unittest test_authproxy.py
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Node Dependencies
+        run: |
+          cd microsoft-addin
+          npm ci --ignore-scripts
+
+      - name: Run Add-in Test Suites & Webpack Build
+        run: |
+          cd microsoft-addin
+          npm test
+          npm run build
+
+  codemender-scan:
+    name: CodeMender Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      id-token: write
+      security-events: write
+      actions: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Authenticate to Google Cloud (Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID || 'genai-demo-catalog' }}
+
+      - name: Install CodeMender CLI
+        run: |
+          echo "⬇️ Downloading CodeMender CLI for Linux..."
+          gcloud artifacts files download \
+            --project=cmoc-prod \
+            --location=us \
+            --repository=codemender-cli-production \
+            --destination=/tmp \
+            "cm:stable:cm-linux-amd64.zip"
+          
+          ZIP_FILE=$(ls /tmp/*cm-linux-amd64.zip 2>/dev/null | head -n 1)
+          if [ -n "$ZIP_FILE" ] && [ -f "$ZIP_FILE" ]; then
+            sudo unzip -o "$ZIP_FILE" -d /usr/local/bin/
+            sudo chmod +x /usr/local/bin/cm
+            echo "cm_installed=true" >> $GITHUB_ENV
+            echo "✅ CodeMender CLI installed successfully:"
+            /usr/local/bin/cm --version || true
+            echo "🔧 Initializing CodeMender workspace..."
+            /usr/local/bin/cm init -y || /usr/local/bin/cm init || true
+          else
+            echo "❌ CodeMender package download failed."
+            exit 1
+          fi
+
+      - name: Run CodeMender Scan
+        id: run_cm_scan
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GCP_PROJECT_ID || 'genai-demo-catalog' }}
+          FULL_SCAN: ${{ inputs.full_scan }}
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+
+          SCAN_MODE="incremental"
+          TARGET_REF="HEAD~1"
+
+          if [ "${FULL_SCAN}" = "true" ]; then
+            SCAN_MODE="full"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            TARGET_REF="origin/${{ github.base_ref }}"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            if [ -n "${{ github.event.before }}" ] && [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
+              TARGET_REF="${{ github.event.before }}"
+            else
+              TARGET_REF="HEAD~1"
+            fi
+          fi
+
+          echo "🔍 Scan Mode: ${SCAN_MODE}"
+          if [ "${SCAN_MODE}" = "full" ]; then
+            echo "🚀 Executing Full CodeMender security scan across entire codebase..."
+            cm --sandbox=false find . --unrestricted -y --format table --output reports/codemender-report.txt --fail-on "CRITICAL,HIGH" || true
+          else
+            echo "🚀 Executing Incremental CodeMender scan against diff (${TARGET_REF})..."
+            if git rev-parse --verify "${TARGET_REF}" >/dev/null 2>&1; then
+              cm --sandbox=false find . --diff="${TARGET_REF}" --unrestricted -y --format table --output reports/codemender-report.txt --fail-on "CRITICAL,HIGH" || true
+            else
+              echo "⚠️ Target ref ${TARGET_REF} not found. Falling back to HEAD~1..."
+              cm --sandbox=false find . --diff="HEAD~1" --unrestricted -y --format table --output reports/codemender-report.txt --fail-on "CRITICAL,HIGH" || true
+            fi
+          fi
+
+          cm report --format sarif > reports/codemender.sarif || true
+          cm report --format md > reports/codemender-summary.md || true
+
+          echo "### 🔒 CodeMender Security Vulnerability Report (${SCAN_MODE})" >> $GITHUB_STEP_SUMMARY
+          if [ -f reports/codemender-summary.md ] && [ -s reports/codemender-summary.md ]; then
+            cat reports/codemender-summary.md >> $GITHUB_STEP_SUMMARY
+          elif [ -f reports/codemender-report.txt ] && [ -s reports/codemender-report.txt ]; then
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat reports/codemender-report.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "✅ No security vulnerabilities detected." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Report Artifacts (Downloadable ZIP)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: codemender-security-report
+          path: reports/
+          retention-days: 14
+
+      - name: Upload SARIF to GitHub Code Scanning (Security Tab)
+        if: hashFiles('reports/codemender.sarif') != ''
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        with:
+          sarif_file: reports/codemender.sarif

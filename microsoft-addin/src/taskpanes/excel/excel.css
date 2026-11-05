@@ -1,0 +1,390 @@
+/**
+ * Gemini for Microsoft Excel - Custom Stylesheet
+ */
+
+.header-badge.excel {
+  background: #d3e3fd;
+  color: #0b57d0;
+}
+
+.quick-chip:hover {
+  background-color: #f0f4f9;
+  color: #0b57d0;
+  border-color: #c4c7c5;
+}
+
+.doc-tools-title:hover {
+  color: #0b57d0;
+}
+
+.doc-tools-title:hover .doc-tools-toggle-icon {
+  color: #0b57d0;
+}
+
+/* Agent Mode Selector Bar */
+.agent-mode-bar {
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  border: 1px solid #e1dfdd;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin-bottom: 6px;
+  gap: 6px;
+}
+
+.agent-mode-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #323130;
+  white-space: nowrap;
+  padding-left: 2px;
+}
+
+.agent-mode-toggle {
+  display: flex;
+  background: #edebe9;
+  border-radius: 4px;
+  padding: 2px;
+  gap: 2px;
+  flex: 1;
+}
+
+.mode-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  padding: 4px 2px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #605e5c;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  transition: all 0.15s ease-in-out;
+  font-family: inherit;
+}
+
+.mode-btn:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: #323130;
+}
+
+.mode-btn.active {
+  background: #107c41;
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.12);
+}
+
+.mode-btn.active[data-mode="modify-range"] {
+  background: #0b6a75;
+}
+
+.mode-btn.active[data-mode="modify-chart"] {
+  background: #004e8c;
+}
+
+/* Excel Schema & Target Preview Bar (2-Row Structured Header) */
+#excelSchemaPreview,
+.schema-preview-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background-color: #f3f9f4;
+  border: 1px solid #c8e6cb;
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.schema-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.schema-row.primary-row {
+  justify-content: flex-start;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.schema-row.chart-row {
+  margin-top: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.schema-row.chart-row::-webkit-scrollbar {
+  display: none;
+}
+
+.target-range-container {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.target-range-container::-webkit-scrollbar {
+  display: none;
+}
+
+.excel-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Green Target Range Chip (Always Active - Anchored Left within container) */
+.excel-pill.target-range,
+.excel-pill.target-cell {
+  background-color: #107c41;
+  color: white;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+.excel-pill.target-table {
+  background-color: #0b6a75;
+  color: white;
+  transition: background-color 0.2s ease;
+  text-align: left;
+}
+
+/* Blue Target Chart Chip (Sticky with Close Button) */
+.excel-pill.target-chart,
+.excel-pill.target-cell.chart-selected {
+  background-color: #004e8c;
+  color: white;
+  box-shadow: 0 0 0 1px #005a9e;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.excel-pill.target-chart .chip-close-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 14px;
+  line-height: 1;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0 2px;
+  margin-left: 2px;
+  border-radius: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.excel-pill.target-chart .chip-close-btn:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.25);
+}
+
+.excel-pill.schema-info {
+  background-color: #e2f0d9;
+  color: #107c41;
+  font-weight: 500;
+  margin-left: 0;
+  flex-shrink: 0;
+}
+
+/* Formula Action Highlighting */
+.action-btn.formula {
+  background-color: var(--gm-sys-color-primary, #0b57d0);
+  color: white;
+  border-color: transparent;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.action-btn.formula:hover {
+  background-color: var(--gm-sys-color-primary-hover, #0842a0);
+  border-color: transparent;
+}
+
+.formula-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+  color: var(--gm-sys-color-primary, #0b57d0);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: Consolas, monospace;
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Native Chart Action Highlighting */
+.action-btn.chart {
+  background-color: var(--gm-sys-color-primary, #0b57d0);
+  color: white;
+  border-color: transparent;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.action-btn.chart:hover {
+  background-color: var(--gm-sys-color-primary-hover, #0842a0);
+  border-color: transparent;
+}
+
+.chart-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+  color: var(--gm-sys-color-on-surface-variant, #444746);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: var(--font-display, 'Google Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Chart Edit Action Highlighting */
+.action-btn.chart-edit {
+  background-color: var(--gm-sys-color-primary, #0b57d0);
+  color: white;
+  border-color: transparent;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.action-btn.chart-edit:hover {
+  background-color: var(--gm-sys-color-primary-hover, #0842a0);
+  border-color: transparent;
+}
+
+.chart-edit-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+  color: var(--gm-sys-color-primary, #0b57d0);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: var(--font-display, 'Google Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Range Formatting Action Highlighting */
+.action-btn.range-format {
+  background-color: var(--gm-sys-color-primary, #0b57d0);
+  color: white;
+  border-color: transparent;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.action-btn.range-format:hover {
+  background-color: var(--gm-sys-color-primary-hover, #0842a0);
+  border-color: transparent;
+}
+
+.range-format-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+  color: var(--gm-sys-color-on-surface-variant, #444746);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: var(--font-display, 'Google Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.excel-chart-card {
+  background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  border-left: 4px solid var(--gm-sys-color-primary, #0b57d0);
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 12px 0;
+  font-family: var(--font-sans, 'Roboto', sans-serif);
+}
+
+/* Executive Summary Worksheet Button */
+.action-btn.summary-tab {
+  background-color: var(--gm-sys-color-surface, #ffffff);
+  color: var(--gm-sys-color-on-surface-variant, #444746);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  border-radius: var(--radius-full, 9999px);
+}
+
+.action-btn.summary-tab:hover {
+  background-color: var(--gm-sys-color-surface-container, #f0f4f9);
+  border-color: #c4c7c5;
+  color: var(--gm-sys-color-on-surface, #1f1f1f);
+}
+
+/* Taxonomy Categorization Action Highlighting */
+.action-btn.taxonomy {
+  background-color: var(--gm-sys-color-primary, #0b57d0);
+  color: white;
+  border-color: transparent;
+  border-radius: var(--radius-full, 9999px);
+}
+
+.action-btn.taxonomy:hover {
+  background-color: var(--gm-sys-color-primary-hover, #0842a0);
+  border-color: transparent;
+}
+
+.taxonomy-preview-pill {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+  color: var(--gm-sys-color-primary, #0b57d0);
+  border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full, 9999px);
+  font-family: var(--font-display, 'Google Sans', sans-serif);
+  font-size: 11px;
+  font-weight: 500;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+

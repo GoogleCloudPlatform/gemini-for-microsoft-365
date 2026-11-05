@@ -1,0 +1,695 @@
+/* 
+ * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
+ * See LICENSE in the project root for license information.
+ */
+
+ html,
+ body {
+     width: 100%;
+     height: 100%;
+     margin: 0;
+     padding: 0;
+ }
+ 
+ ul {
+     margin: 0;
+     padding: 0;
+ }
+ 
+ .ms-welcome__header {
+    padding: 20px;
+    padding-bottom: 30px;
+    padding-top: 100px;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    align-items: center;
+ }
+
+ .ms-welcome__main {
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex-wrap: nowrap;
+    flex-wrap: nowrap;
+    -webkit-align-items: center;
+    align-items: center;
+    -webkit-flex: 1 0 0;
+    flex: 1 0 0;
+    padding: 10px 20px;
+ }
+ 
+ .ms-welcome__main > h2 {
+     width: 100%;
+     text-align: center;
+ }
+ 
+ .ms-welcome__features {
+     list-style-type: none;
+     margin-top: 20px;
+ }
+ 
+ .ms-welcome__features.ms-List .ms-ListItem {
+     padding-bottom: 20px;
+     display: -webkit-flex;
+     display: flex;
+ }
+ 
+ .ms-welcome__features.ms-List .ms-ListItem > .ms-Icon {
+     margin-right: 10px;
+ }
+ 
+ .ms-welcome__action.ms-Button--hero {
+     margin-top: 30px;
+ }
+ 
+.ms-Button.ms-Button--hero .ms-Button-label {
+  color: #0078d7;
+}
+
+.ms-Button.ms-Button--hero:hover .ms-Button-label,
+.ms-Button.ms-Button--hero:focus .ms-Button-label{
+  color: #005a9e;
+  cursor: pointer;
+}
+
+b {
+    font-weight: bold;
+}
+
+
+/* ==========================================================================
+   Outlook Host Container & Tabbed Assistant (Material 3 / Google Workspace)
+   ========================================================================== */
+#outlookHostContainer {
+    font-family: var(--gm-font-sans, 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif);
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+}
+
+.outlook-context-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--gm-sys-color-primary-container, #d3e3fd);
+    border: 1px solid var(--gm-sys-color-outline-variant, #c4c7c5);
+    border-radius: 8px;
+    padding: 7px 10px;
+    margin-bottom: 8px;
+    font-size: 11.5px;
+    color: var(--gm-primary, #0b57d0);
+}
+
+.context-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.context-subject {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.outlook-Refresh-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 2px 5px;
+    border-radius: 4px;
+    color: var(--gm-primary, #0b57d0);
+    transition: background-color 0.15s ease;
+}
+
+.outlook-Refresh-btn:hover {
+    background-color: rgba(11, 87, 208, 0.12);
+}
+
+/* Outlook 5-Tab Navigation Bar */
+#outlookHostContainer {
+    height: 100%;
+    overflow: hidden !important;
+}
+
+.outlook-tabs-nav {
+    display: flex;
+    background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    margin-bottom: 10px;
+    border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+    flex-shrink: 0;
+}
+
+.outlook-tabs-nav .tab-btn,
+.outlook-tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.outlook-tabs-nav .tab-btn:hover,
+.outlook-tab-btn:hover {
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+    background-color: rgba(31, 31, 31, 0.05);
+}
+
+.outlook-tabs-nav .tab-btn.active,
+.outlook-tab-btn.active {
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    color: var(--gm-primary, #0b57d0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab Content Panels */
+.outlook-tab-panel {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 8px;
+}
+
+.outlook-tab-panel.active {
+    display: flex;
+}
+
+.panel-desc,
+.outlook-panel-desc {
+    margin: 0;
+    font-size: 11.5px;
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+.outlook-field-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+    margin-bottom: 2px;
+}
+
+/* Outlook Textarea */
+.outlook-textarea {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--gm-sys-color-outline-variant, #c4c7c5);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1.4;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+    flex-shrink: 0;
+}
+
+.outlook-textarea:focus {
+    outline: none;
+    border-color: var(--gm-primary, #0b57d0);
+    box-shadow: 0 0 0 2px rgba(11, 87, 208, 0.15);
+}
+
+/* Tone Selector Pills */
+.outlook-tone-bar,
+.tone-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+    flex-shrink: 0;
+}
+
+.tone-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+    margin-right: 2px;
+}
+
+.tone-pill {
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+    border: 1px solid var(--gm-sys-color-outline-variant, #c4c7c5);
+    border-radius: 14px;
+    padding: 4px 10px;
+    font-size: 10.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tone-pill:hover {
+    border-color: var(--gm-primary, #0b57d0);
+    color: var(--gm-primary, #0b57d0);
+}
+
+.tone-pill.active {
+    background-color: var(--gm-primary, #0b57d0);
+    color: #ffffff;
+    border-color: var(--gm-primary, #0b57d0);
+    font-weight: 600;
+}
+
+/* Primary Action Button for Outlook Panels */
+.outlook-primary-btn {
+    background-color: var(--gm-primary, #0b57d0);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, transform 0.05s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.outlook-primary-btn:hover {
+    background-color: var(--gm-primary-hover, #0842a0);
+}
+
+.outlook-primary-btn:active {
+    transform: scale(0.99);
+}
+
+.outlook-primary-btn:disabled {
+    background-color: #c8c6c4;
+    cursor: not-allowed;
+}
+
+.outlook-secondary-btn {
+    background-color: var(--gm-sys-color-primary-container, #d3e3fd);
+    color: var(--gm-primary, #0b57d0);
+    border: 1px solid var(--gm-sys-color-outline-variant, #c4c7c5);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.outlook-secondary-btn:hover {
+    background-color: var(--gm-primary, #0b57d0);
+    color: #ffffff;
+    border-color: var(--gm-primary, #0b57d0);
+}
+
+/* Loading State */
+.outlook-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px 10px;
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    border: 1px dashed var(--gm-sys-color-outline-variant, #c4c7c5);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--gm-primary, #0b57d0);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+/* Result Cards inside Outlook Tabs */
+.outlook-result-card {
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 6px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1 1 0%;
+    min-height: 180px;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#coachResultContainer.outlook-result-card {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.outlook-result-body {
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+    flex: 1 1 0%;
+    min-height: 120px;
+    max-height: none;
+    overflow-y: auto;
+    overflow-x: hidden;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.outlook-result-body * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.outlook-result-body h1,
+.outlook-result-body h2,
+.outlook-result-body h3,
+.outlook-result-body h4 {
+    margin: 8px 0 4px 0;
+    font-size: 13px;
+    color: var(--gm-primary, #0b57d0);
+}
+
+.outlook-result-body ul,
+.outlook-result-body ol {
+    margin: 4px 0;
+    padding-left: 18px;
+}
+
+.outlook-result-body li {
+    margin-bottom: 4px;
+}
+
+.outlook-result-body p {
+    margin: 4px 0;
+}
+
+.table-scroll-wrapper {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    margin: 8px 0;
+    border-radius: 8px;
+}
+
+.outlook-result-body .table-scroll-wrapper table {
+    width: max-content !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    table-layout: auto !important;
+    margin: 0 !important;
+}
+
+.outlook-result-body table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 11px !important;
+}
+
+.outlook-result-body th {
+    background-color: var(--gm-sys-color-primary-container, #d3e3fd);
+    color: var(--gm-primary, #0b57d0);
+    text-align: left;
+    padding: 5px 6px !important;
+    border: 1px solid var(--gm-sys-color-outline-variant, #c4c7c5);
+    font-weight: 600;
+    font-size: 11px !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+}
+
+.outlook-result-body td {
+    padding: 5px 6px !important;
+    border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+    vertical-align: top;
+    font-size: 11px !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    white-space: normal !important;
+}
+
+.outlook-result-body pre,
+.outlook-result-body code {
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+    overflow-x: hidden !important;
+}
+
+.outlook-result-body tr:nth-child(even) {
+    background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+}
+
+/* Action Bar inside Result Card */
+.outlook-actions-bar,
+.outlook-card-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--gm-sys-color-surface-container-low, #f3f2f1);
+    padding-top: 8px;
+    flex-shrink: 0;
+}
+
+.outlook-action-btn {
+    flex: 1;
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+    border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+    border-radius: var(--radius-full, 9999px);
+    padding: 6px 14px;
+    font-family: var(--gm-font-sans, 'Google Sans', 'Roboto', sans-serif);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.outlook-action-btn:hover {
+    background-color: var(--gm-sys-color-surface-container, #f0f4f9);
+    border-color: #c4c7c5;
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+}
+
+.outlook-action-btn.primary,
+.outlook-action-btn.primary-action {
+    background-color: var(--gm-primary, #0b57d0);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+.outlook-action-btn.primary:hover,
+.outlook-action-btn.primary-action:hover {
+    background-color: var(--gm-primary-hover, #0842a0);
+    color: #ffffff;
+    border-color: transparent;
+}
+
+/* Grounding Sources Badge Container */
+.outlook-citations-box {
+    border-top: 1px dashed var(--gm-sys-color-outline-variant, #e1e3e1);
+    padding-top: 8px;
+    font-size: 10.5px;
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+}
+
+.outlook-citations-title {
+    font-weight: 600;
+    color: var(--gm-primary, #0b57d0);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.outlook-citation-pill {
+    display: inline-block;
+    background-color: var(--gm-sys-color-surface-container-low, #f8fafd);
+    border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+    border-radius: 4px;
+    padding: 2px 6px;
+    margin: 2px 4px 2px 0;
+    font-size: 10px;
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+    text-decoration: none;
+}
+
+.outlook-citation-pill:hover {
+    background-color: var(--gm-sys-color-primary-container, #d3e3fd);
+    border-color: var(--gm-primary, #0b57d0);
+}
+
+/* Coach Analysis & Dual Option Cards */
+.coach-analysis-card {
+    background-color: #fff8e1;
+    border: 1px solid #ffe082;
+    border-left: 4px solid #ffb300;
+    border-radius: 6px;
+    padding: 9px 11px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    color: #5d4037;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.coach-options-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.coach-option-card {
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.coach-option-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--gm-sys-color-surface-container-low, #f3f2f1);
+    padding-bottom: 6px;
+}
+
+.coach-option-badge {
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.coach-option-badge.direct,
+.coach-option-badge.badge-executive {
+    background-color: var(--gm-sys-color-primary-container, #d3e3fd);
+    color: var(--gm-primary, #0b57d0);
+}
+
+.coach-option-badge.diplomatic,
+.coach-option-badge.badge-diplomatic {
+    background-color: #e6f4ea;
+    color: #137333;
+}
+
+.coach-option-sub {
+    font-size: 10px;
+    color: var(--gm-sys-color-on-surface-variant, #444746);
+}
+
+.coach-option-body {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+    overflow-y: visible;
+    overflow-x: hidden;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    padding: 4px 0;
+}
+
+.coach-option-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-top: 4px;
+}
+
+.coach-option-actions .outlook-action-btn {
+    flex: 0 1 auto;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    border-radius: 9999px;
+}
+
+/* Streaming Progress Bar & Status */
+.streaming-progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 10px;
+    background-color: var(--gm-sys-color-surface, #ffffff);
+    border: 1px solid var(--gm-sys-color-outline-variant, #c4c7c5);
+    border-radius: 8px;
+    margin-bottom: 6px;
+}
+
+.streaming-status-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gm-primary, #0b57d0);
+}
+
+.streaming-progress-track {
+    width: 100%;
+    height: 4px;
+    background-color: var(--gm-sys-color-primary-container, #d3e3fd);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+}
+
+.streaming-progress-bar {
+    width: 35%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--gm-primary, #0b57d0), #4285f4);
+    border-radius: 2px;
+    animation: indeterminateSlide 1.4s infinite ease-in-out;
+}
+
+@keyframes indeterminateSlide {
+    0% { transform: translateX(-100%); }
+    50% { transform: translateX(120%); width: 50%; }
+    100% { transform: translateX(300%); }
+}
+
+.streaming-text {
+    white-space: pre-wrap;
+    font-family: inherit;
+    color: var(--gm-sys-color-on-surface, #1f1f1f);
+}

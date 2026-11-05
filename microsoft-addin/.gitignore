@@ -1,0 +1,28 @@
+# Node dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+
+# Environment and secrets (CRITICAL: NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.crt
+
+# Operating System & IDE
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+.vscode/
+.idea/
+
+# Office Add-in developer certs
+~/.office-addin-dev-certs/

@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gemini</title>
+    
+    <!-- Office.js SDK for Microsoft 365 -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- Google Fonts: Google Sans & Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="taskpane.css" />
+    
+    <style>
+        /* Identifies the slide-builder bundle actually running in this pane. */
+        .build-stamp { font-size: 11px; color: var(--gm-sys-color-on-surface-variant); font-weight: 400; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: 0; }
+        button.secondary { background-color: #ffffff; color: #323130; border: 1px solid #8a8886; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer; font-weight: 500; }
+
+        /* Feature 1: Document Intelligence Quick Bar (PowerPoint & Excel) */
+        .doc-tools-bar { flex-shrink: 0; display: flex; flex-direction: column; gap: 6px; background-color: #ffffff; border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1); border-radius: 12px; padding: 8px 12px; margin: 6px 14px 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+        .doc-tools-bar:not([open]) { gap: 0; }
+        .doc-tools-bar::details-content { display: flex; flex-direction: column; }
+        .doc-tools-bar:not([open])::details-content,
+        .doc-tools-bar:not([open]) .chips-container { display: none !important; }
+        .doc-tools-title { font-size: 11.5px; font-weight: 600; color: var(--gm-sys-color-on-surface, #1f1f1f); display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; list-style: none; }
+        .doc-tools-title::-webkit-details-marker { display: none; }
+        .doc-tools-title::marker { content: ""; }
+        .doc-tools-title:hover { color: var(--gm-sys-color-primary, #0b57d0); }
+        .doc-tools-title:focus-visible { outline: 2px solid var(--gm-sys-color-primary, #0b57d0); outline-offset: 2px; border-radius: 4px; }
+        .doc-tools-title-left { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+        .doc-tools-chevron { width: 14px; height: 14px; flex-shrink: 0; color: #605e5c; transition: transform 0.2s ease, color 0.15s ease; transform: rotate(-90deg); }
+        .doc-tools-title:hover .doc-tools-chevron { color: var(--gm-sys-color-primary, #0b57d0); }
+        .doc-tools-bar[open] .doc-tools-chevron { transform: rotate(0deg); }
+        .chips-container { display: flex; flex-wrap: wrap; gap: 6px; }
+        .quick-chip { background-color: #ffffff; color: var(--gm-sys-color-on-surface-variant, #444746); border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1); border-radius: var(--radius-full, 9999px); padding: 4px 10px; font-family: 'Google Sans', 'Roboto', sans-serif; font-size: 11.5px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .quick-chip:hover { background-color: #f0f4f9; color: var(--gm-sys-color-primary, #0b57d0); border-color: #c4c7c5; }
+        
+        #debugStatus { font-size: 9.5px; color: var(--gm-sys-color-on-surface-variant, #444746); font-style: italic; display: block; margin-top: 1px; }
+
+        /* Feature 2: Action Buttons & Refinement Chips under Response (Material 3 Pill Design) */
+        .primary-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+        .action-btn { border: none; border-radius: var(--radius-full, 9999px); padding: 7px 15px; font-family: 'Google Sans', 'Roboto', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s ease; white-space: nowrap; background: var(--gm-sys-color-primary, #0b57d0); color: #ffffff; }
+        .action-btn:hover { background: var(--gm-sys-color-primary-hover, #0842a0); }
+        .action-btn.insert { background: var(--gm-sys-color-primary, #0b57d0); color: #ffffff; }
+        .action-btn.insert:hover { background: var(--gm-sys-color-primary-hover, #0842a0); }
+        .action-btn.replace,
+        .action-btn.insert-current,
+        .action-btn.outlined,
+        .action-btn.secondary,
+        .action-btn.copy { background: #ffffff; color: var(--gm-sys-color-on-surface-variant, #444746); border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1); }
+        .action-btn.replace:hover,
+        .action-btn.insert-current:hover,
+        .action-btn.outlined:hover,
+        .action-btn.secondary:hover,
+        .action-btn.copy:hover { background: #f8fafd; border-color: #c4c7c5; color: #1f1f1f; }
+        
+        .refinement-chips-label { font-size: 9.5px; color: var(--gm-sys-color-on-surface-variant, #444746); font-weight: 600; text-transform: uppercase; margin-top: 2px; }
+        .refinement-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+        .refinement-chip { background-color: #ffffff; color: var(--gm-sys-color-on-surface-variant, #444746); border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1); border-radius: var(--radius-full, 9999px); padding: 4px 10px; font-family: 'Google Sans', 'Roboto', sans-serif; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.15s ease; }
+        .refinement-chip:hover { background-color: #e8f0fe; border-color: var(--gm-sys-color-primary, #0b57d0); color: var(--gm-sys-color-on-primary-container, #041e49); }
+
+        /* Context Attachment Pill: Sleek, compact indicator above prompt input */
+        #selectionAttachmentPill {
+            flex-shrink: 0;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f0f6ff;
+            border: 1px solid #c7e0f4;
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin-bottom: 5px;
+            font-size: 11px;
+            color: #005a9e;
+        }
+        .selection-pill-content {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+        .selection-pill-close {
+            background: none;
+            border: none;
+            color: #605e5c;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0 4px;
+            font-weight: bold;
+            border-radius: 3px;
+        }
+        .selection-pill-close:hover {
+            background-color: #deecf9;
+            color: #a80000;
+        }
+        .dismiss-btn {
+            background: none;
+            border: none;
+            color: #005a9e;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0 4px;
+            font-weight: bold;
+        }
+        .dismiss-btn:hover {
+            color: #a80000;
+        }
+        
+        .input-container { flex-shrink: 0; margin-top: 0; display: flex; flex-direction: column; gap: 5px; background-color: #ffffff; padding: 7px; border-radius: 8px; border: 1px solid #e1dfdd; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        /* The Word chat box (.chat-textarea, the round .send-btn and .loading-indicator,
+           defined further down) replaced the old full-width prompt, Send button and
+           #loading line. Their generic rules used to sit here and leaked into the new
+           controls: a blue focus ring on the prompt, a blue hover and extra padding on
+           the inactive Send button, and a restyled "thinking" line (#loading is an ID
+           selector, so it outranked .loading-indicator). Keep generic textarea styling
+           off the chat box and let the chat-box rules own the rest. */
+        textarea:not(.chat-textarea):not(.outlook-textarea) { width: 100%; border: 1px solid #8a8886; border-radius: 4px; padding: 6px 8px; font-size: 12.5px; font-family: inherit; resize: vertical; min-height: 44px; max-height: 80px; }
+        textarea:not(.chat-textarea):not(.outlook-textarea):focus { outline: none; border-color: #0078d4; box-shadow: 0 0 0 1px #0078d4; }
+        
+        /* ------------------------------------------------------------------
+           Identity bar + Troubleshooting panel: Gemini (Material 3) theme.
+           Both components came from the staging UI with Office Fluent greys,
+           greens and 4-6px corners, which clashed with the --gm-* tokens used
+           by the rest of the pane. They now share its white surfaces, pill
+           buttons, type scale and monochrome icons. The Google "G", the check
+           mark and the spinners are drawn on ::before so they survive
+           taskpane.js resetting the button labels. The icons are data: URIs;
+           if a Content-Security-Policy is added, img-src must allow data:.
+           ------------------------------------------------------------------ */
+
+        /* SSO Identity Status Bar */
+        .user-auth-bar {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            min-height: 40px;
+            margin: 8px 14px 0;
+            padding: 4px 4px 4px 14px;
+            background-color: var(--gm-sys-color-surface);
+            border: 1px solid var(--gm-sys-color-outline-variant);
+            border-radius: var(--radius-full);
+            box-shadow: var(--shadow-sm);
+            font-size: 12.5px;
+            line-height: 1.3;
+            color: var(--gm-sys-color-on-surface-variant);
+        }
+        .user-identity-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            padding-right: 6px;
+        }
+        .user-auth-actions {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        /* 12px box for every state so the label never shifts; the inset ring
+           draws the connected/offline dot at 8px. */
+        .user-status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            background-color: #1e8e3e;
+            box-shadow: inset 0 0 0 2px var(--gm-sys-color-surface);
+            transition: background-color 0.2s ease;
+        }
+        .user-status-dot.offline { background-color: #9aa0a6; }
+        .user-status-dot.pending {
+            background-color: transparent;
+            box-shadow: none;
+            border: 2px solid var(--gm-sys-color-primary-container);
+            border-top-color: var(--gm-sys-color-primary);
+            animation: gmSpin 0.8s linear infinite;
+        }
+        .user-email-text {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 500;
+            color: var(--gm-sys-color-on-surface);
+        }
+        .user-email-text.offline,
+        .user-email-text.pending {
+            font-weight: 400;
+            color: var(--gm-sys-color-on-surface-variant);
+        }
+
+        /* "Login with Google": outlined Google sign-in pill with the multicolour G */
+        .google-drive-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            height: 30px;
+            padding: 0 14px 0 10px;
+            background-color: var(--gm-sys-color-surface);
+            color: var(--gm-sys-color-on-surface);
+            border: 1px solid var(--gm-sys-color-outline);
+            border-radius: var(--radius-full);
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            font-size: 12.5px;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .google-drive-btn::before {
+            content: "";
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%23EA4335' d='M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z'/%3E%3Cpath fill='%234285F4' d='M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z'/%3E%3Cpath fill='%23FBBC05' d='M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z'/%3E%3Cpath fill='%2334A853' d='M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+        .google-drive-btn:hover {
+            background-color: var(--gm-sys-color-surface-container-low);
+            border-color: #747775;
+            box-shadow: 0 1px 2px rgba(60, 64, 67, 0.15), 0 1px 3px 1px rgba(60, 64, 67, 0.08);
+        }
+        .google-drive-btn:active {
+            background-color: #f1f3f4;
+            box-shadow: none;
+        }
+        .google-drive-btn.connected {
+            background-color: #e6f4ea;
+            border-color: transparent;
+            color: #0d652d;
+        }
+        .google-drive-btn.connected::before { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%230d652d' d='M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E"); }
+        .google-drive-btn.connected:hover {
+            background-color: #ceead6;
+            box-shadow: none;
+        }
+        /* Set by the click handler while the Google sign-in dialog is open. */
+        .google-drive-btn.busy { cursor: progress; }
+        .google-drive-btn.busy::before {
+            width: 12px;
+            height: 12px;
+            background: none;
+            border: 2px solid var(--gm-sys-color-primary-container);
+            border-top-color: var(--gm-sys-color-primary);
+            border-radius: 50%;
+            animation: gmSpin 0.8s linear infinite;
+        }
+        @keyframes gmSpin { to { transform: rotate(360deg); } }
+
+        /* Feature 4: Collapsible Troubleshooting & Diagnostics Panel */
+        .troubleshoot-panel {
+            flex-shrink: 0;
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--gm-sys-color-on-surface-variant);
+        }
+        /* Collapsed: a quiet footer link under the disclaimer. */
+        .troubleshoot-summary {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: fit-content;
+            margin: 0 auto;
+            padding: 4px 10px 4px 8px;
+            border-radius: var(--radius-full);
+            list-style: none;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #5f6368;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .troubleshoot-summary::-webkit-details-marker { display: none; }
+        .troubleshoot-summary:hover {
+            background-color: #f1f3f4;
+            color: var(--gm-sys-color-on-surface);
+        }
+        .troubleshoot-panel[open] .troubleshoot-summary { color: var(--gm-sys-color-on-surface); }
+        .troubleshoot-summary svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+        .troubleshoot-chevron { transition: transform 0.2s ease; }
+        .troubleshoot-panel[open] .troubleshoot-chevron { transform: rotate(180deg); }
+        /* Expanded: one white card, sections separated by hairlines. The bottom
+           area of the pane cannot shrink, so the card keeps the old 160px height
+           budget; a taller card pushed itself below the fold under the
+           PowerPoint / Excel quick-action bar. */
+        .troubleshoot-content {
+            display: flex;
+            flex-direction: column;
+            margin-top: 6px;
+            max-height: min(160px, 28vh);
+            overflow-y: auto;
+            background-color: var(--gm-sys-color-surface);
+            border: 1px solid var(--gm-sys-color-outline-variant);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            animation: fadeIn 0.2s ease-out;
+        }
+        .diag-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 14px;
+        }
+        .diag-group + .diag-group { border-top: 1px solid var(--gm-sys-color-outline-variant); }
+        .diag-title {
+            margin-bottom: 2px;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--gm-sys-color-on-surface);
+            letter-spacing: 0.1px;
+        }
+        .diag-title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .diag-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            font-size: 12px;
+            color: var(--gm-sys-color-on-surface);
+        }
+        .diag-row > :last-child {
+            min-width: 0;
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+        .diag-row span:first-child {
+            flex-shrink: 0;
+            color: #5f6368;
+        }
+        .diag-row strong { font-weight: 500; }
+        .diag-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+        /* Scoped so these beat the generic button.secondary rule at the top. */
+        .troubleshoot-panel .diag-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 28px;
+            padding: 0 12px;
+            border: 1px solid transparent;
+            border-radius: var(--radius-full);
+            background-color: #e8f0fe;
+            color: var(--gm-sys-color-primary);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+        .troubleshoot-panel .diag-btn:hover {
+            background-color: var(--gm-sys-color-primary-container);
+            color: var(--gm-sys-color-on-primary-container);
+        }
+        .troubleshoot-panel .diag-btn.secondary {
+            background-color: var(--gm-sys-color-surface);
+            border-color: var(--gm-sys-color-outline);
+            color: var(--gm-sys-color-on-surface-variant);
+        }
+        .troubleshoot-panel .diag-btn.secondary:hover {
+            background-color: var(--gm-sys-color-surface-container-low);
+            color: var(--gm-sys-color-on-surface);
+        }
+        .diag-link-btn {
+            background: none;
+            border: none;
+            border-radius: var(--radius-full);
+            padding: 2px 8px;
+            margin-right: -8px;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gm-sys-color-primary);
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+        .diag-link-btn:hover { background-color: #e8f0fe; }
+        .diag-log-box {
+            margin: 0;
+            padding: 8px 10px;
+            max-height: 110px;
+            overflow-y: auto;
+            background-color: var(--gm-sys-color-surface-container);
+            color: var(--gm-sys-color-on-surface-variant);
+            border-radius: var(--radius-sm);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 11px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+        .google-drive-btn:focus-visible,
+        .troubleshoot-summary:focus-visible,
+        .troubleshoot-panel .diag-btn:focus-visible,
+        .diag-link-btn:focus-visible {
+            outline: 2px solid var(--gm-sys-color-primary);
+            outline-offset: 2px;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .user-status-dot.pending,
+            .google-drive-btn.busy::before { animation-duration: 2.4s; }
+            .troubleshoot-content { animation: none; }
+            .troubleshoot-chevron { transition: none; }
+        }
+
+        /* Image Zoom / Review Modal */
+        .image-zoom-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.88);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(4px);
+            animation: fadeInModal 0.15s ease-out;
+            padding: 12px;
+            box-sizing: border-box;
+        }
+        @keyframes fadeInModal {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .image-zoom-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #ffffff;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .image-zoom-close {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            width: 26px;
+            height: 26px;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease;
+        }
+        .image-zoom-close:hover {
+            background: rgba(239, 68, 68, 0.85);
+        }
+        .image-zoom-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow: auto;
+            padding: 16px;
+            cursor: grab;
+            user-select: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .image-zoom-body:active {
+            cursor: grabbing;
+        }
+        .image-zoom-body img {
+            border-radius: 6px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            background: #ffffff;
+            transition: width 0.15s ease, min-width 0.15s ease;
+            margin: auto;
+        }
+        .image-zoom-body.zoom-fit img {
+            max-width: 95%;
+            max-height: 70vh;
+            width: auto;
+            object-fit: contain;
+        }
+        .image-zoom-body.zoom-2x img {
+            min-width: 580px;
+            width: 190%;
+            max-width: none;
+            height: auto;
+        }
+        .image-zoom-body.zoom-3x img {
+            min-width: 880px;
+            width: 280%;
+            max-width: none;
+            height: auto;
+        }
+        .image-zoom-footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            flex-wrap: wrap;
+        }
+        .image-zoom-btn {
+            background-color: var(--gm-sys-color-primary, #0b57d0);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-full, 9999px);
+            padding: 8px 18px;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .image-zoom-btn:hover {
+            background-color: var(--gm-sys-color-primary-hover, #0842a0);
+        }
+        .image-zoom-btn.secondary {
+            background-color: rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+        }
+        .image-zoom-btn.secondary:hover {
+            background-color: rgba(255, 255, 255, 0.28);
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+        .image-zoom-btn.success {
+            background-color: var(--gm-sys-color-primary, #0b57d0);
+        }
+        .office-preview-img:hover {
+            opacity: 0.95;
+            box-shadow: 0 4px 12px rgba(11, 87, 208, 0.25);
+        }
+        .img-zoom-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(15, 23, 42, 0.85);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-full, 9999px);
+            padding: 5px 11px;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            transition: all 0.15s ease;
+        }
+        .img-zoom-btn:hover {
+            background: rgba(15, 23, 42, 1);
+            transform: scale(1.05);
+        }
+        .img-action-btn-zoom {
+            background: #ffffff;
+            color: var(--gm-sys-color-primary, #0b57d0);
+            border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1);
+            border-radius: var(--radius-full, 9999px);
+            padding: 6px 14px;
+            font-family: 'Google Sans', 'Roboto', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition: all 0.15s ease;
+        }
+        .img-action-btn-zoom:hover {
+            background: #f8fafd;
+            border-color: var(--gm-sys-color-primary, #0b57d0);
+            color: var(--gm-sys-color-primary-hover, #0842a0);
+        }
+
+        /* Excel Schema & Target Preview Bar (2-Row Structured Header) */
+        #excelSchemaPreview,
+        .schema-preview-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            background-color: #f3f9f4;
+            border: 1px solid #c8e6cb;
+            border-radius: 6px;
+            padding: 5px 8px;
+            margin: 6px 14px 4px;
+            font-size: 11px;
+        }
+        .schema-row {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            min-width: 0;
+        }
+        .schema-row.primary-row {
+            justify-content: flex-start;
+            gap: 6px;
+            overflow: hidden;
+        }
+        .schema-row.chart-row {
+            margin-top: 2px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .schema-row.chart-row::-webkit-scrollbar {
+            display: none;
+        }
+        .excel-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 7px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 11px;
+            line-height: 1.2;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .excel-pill.target-range,
+        .excel-pill.target-cell {
+            background-color: #107c41;
+            color: white;
+            transition: background-color 0.2s ease;
+            text-align: left;
+        }
+        .excel-pill.target-table {
+            background-color: #0b6a75;
+            color: white;
+            transition: background-color 0.2s ease;
+            text-align: left;
+        }
+        .excel-pill.target-chart,
+        .excel-pill.target-cell.chart-selected {
+            background-color: #004e8c;
+            color: white;
+            box-shadow: 0 0 0 1px #005a9e;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+        .excel-pill.target-chart .chip-close-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            line-height: 1;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 0 2px;
+            margin-left: 2px;
+            border-radius: 2px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .excel-pill.target-chart .chip-close-btn:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+        .excel-pill.schema-info {
+            background-color: #e2f0d9;
+            color: #107c41;
+            font-weight: 500;
+            margin-left: 0;
+            flex-shrink: 0;
+        }
+        .action-btn.formula { background-color: var(--gm-sys-color-primary, #0b57d0); color: white; border: none; }
+        .action-btn.formula:hover { background-color: var(--gm-sys-color-primary-hover, #0842a0); }
+        .formula-preview-pill { display: inline-block; background-color: var(--gm-sys-color-surface-container, #f0f4f9); color: var(--gm-sys-color-on-primary-container, #041e49); border: 1px solid var(--gm-sys-color-primary-container, #d3e3fd); padding: 4px 10px; border-radius: var(--radius-full, 9999px); font-family: Consolas, monospace; font-size: 11px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .action-btn.chart { background-color: var(--gm-sys-color-primary, #0b57d0); color: white; border: none; }
+        .action-btn.chart:hover { background-color: var(--gm-sys-color-primary-hover, #0842a0); }
+        .chart-preview-pill { display: inline-block; background-color: var(--gm-sys-color-surface-container, #f0f4f9); color: var(--gm-sys-color-on-primary-container, #041e49); border: 1px solid var(--gm-sys-color-primary-container, #d3e3fd); padding: 4px 10px; border-radius: var(--radius-full, 9999px); font-size: 11px; font-weight: 600; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .action-btn.chart-edit { background-color: var(--gm-sys-color-primary, #0b57d0); color: white; border: none; }
+        .action-btn.chart-edit:hover { background-color: var(--gm-sys-color-primary-hover, #0842a0); }
+        .chart-edit-preview-pill { display: inline-block; background-color: var(--gm-sys-color-surface-container, #f0f4f9); color: var(--gm-sys-color-on-primary-container, #041e49); border: 1px solid var(--gm-sys-color-primary-container, #d3e3fd); padding: 4px 10px; border-radius: var(--radius-full, 9999px); font-size: 11px; font-weight: 600; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .action-btn.range-format { background-color: var(--gm-sys-color-primary, #0b57d0); color: white; border: none; }
+        .action-btn.range-format:hover { background-color: var(--gm-sys-color-primary-hover, #0842a0); }
+        .range-format-preview-pill { display: inline-block; background-color: var(--gm-sys-color-surface-container, #f0f4f9); color: var(--gm-sys-color-on-primary-container, #041e49); border: 1px solid var(--gm-sys-color-primary-container, #d3e3fd); padding: 4px 10px; border-radius: var(--radius-full, 9999px); font-size: 11px; font-weight: 600; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .action-btn.taxonomy { background-color: var(--gm-sys-color-primary, #0b57d0); color: white; border: none; }
+        .action-btn.taxonomy:hover { background-color: var(--gm-sys-color-primary-hover, #0842a0); }
+        .taxonomy-preview-pill { display: inline-block; background-color: var(--gm-sys-color-surface-container, #f0f4f9); color: var(--gm-sys-color-on-primary-container, #041e49); border: 1px solid var(--gm-sys-color-primary-container, #d3e3fd); padding: 4px 10px; border-radius: var(--radius-full, 9999px); font-size: 11px; font-weight: 600; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+        .action-btn.summary-tab { background-color: #ffffff; color: var(--gm-sys-color-on-surface-variant, #444746); border: 1px solid var(--gm-sys-color-outline-variant, #e1e3e1); }
+        .action-btn.summary-tab:hover { background-color: #f8fafd; border-color: #c4c7c5; color: #1f1f1f; }
+
+        :root {
+            --gm-surface: #ffffff;
+            --gm-on-surface: #1f1f1f;
+            --gm-on-surface-variant: #444746;
+            --gm-outline: #c4c7c5;
+            --gm-outline-variant: #e1e3e1;
+            --gm-primary: #0b57d0;
+            --gm-primary-hover: #0842a0;
+            --gm-blue-badge-bg: #d3e3fd;
+            --gm-blue-star: #0b57d0;
+
+            --gm-sys-color-surface: #ffffff;
+            --gm-sys-color-surface-container: #f0f4f9;
+            --gm-sys-color-surface-container-low: #f8fafd;
+            --gm-sys-color-on-surface: #1f1f1f;
+            --gm-sys-color-on-surface-variant: #444746;
+            --gm-sys-color-outline: #c4c7c5;
+            --gm-sys-color-outline-variant: #e1e3e1;
+            --gm-sys-color-primary: #0b57d0;
+            --gm-sys-color-primary-hover: #0842a0;
+            --gm-sys-color-primary-container: #d3e3fd;
+            --gm-sys-color-on-primary-container: #041e49;
+            --gemini-gradient: linear-gradient(135deg, #1ba1e2 0%, #4285f4 35%, #9b72cb 70%, #d96570 100%);
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 20px;
+            --radius-full: 9999px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Google Sans', 'Roboto', -apple-system, sans-serif;
+            font-size: 14px;
+            background-color: var(--gm-sys-color-surface-container-low);
+            color: var(--gm-sys-color-on-surface);
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Top App Bar Header (Google Docs Style) */
+        .top-header {
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            border-bottom: 1px solid var(--gm-sys-color-outline-variant);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .menu-btn {
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444746;
+            transition: background 0.15s ease;
+        }
+        .menu-btn:hover {
+            background: #f1f3f4;
+            color: #1f1f1f;
+        }
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .gemini-logo {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #d3e3fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .gemini-logo svg {
+            width: 13px;
+            height: 13px;
+        }
+        .brand-title {
+            font-size: 15.5px;
+            font-weight: 500;
+            color: #1f1f1f;
+            letter-spacing: -0.1px;
+        }
+        
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .header-icon-btn {
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444746;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .header-icon-btn:hover {
+            background: #f1f3f4;
+            color: #1f1f1f;
+        }
+        .header-icon-btn.new-chat-btn {
+            background: var(--gm-blue-badge-bg);
+            color: var(--gm-primary);
+        }
+        .header-icon-btn.new-chat-btn:hover {
+            background: #c2e7ff;
+        }
+
+        /* Clean Main Canvas */
+        .main-canvas {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0 20px 14px;
+            overflow-y: hidden;
+            position: relative;
+        }
+
+        /* Centered Rotating Capability Headline */
+        .center-hero {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 40px;
+            min-height: 120px;
+        }
+        .gradient-headline {
+            font-size: 26px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+            background: linear-gradient(90deg, #1a73e8 0%, #4285f4 40%, #7c4dff 75%, #9334e6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Bottom Area Container */
+        .bottom-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* Suggestion Prompts Section (Above Chat Box) */
+        .suggestions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-left: 2px;
+        }
+        .suggestion-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #1f1f1f;
+            font-size: 13.5px;
+            cursor: pointer;
+            padding: 5px 8px;
+            border-radius: 8px;
+            margin: 0 -8px;
+            transition: background 0.15s ease;
+            user-select: none;
+        }
+        .suggestion-item:hover {
+            background: #f1f3f4;
+        }
+        .return-arrow {
+            color: #444746;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Main Scrollable Chat Area */
+        #chatHistory {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0 14px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .chat-bubble {
+            box-sizing: border-box;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* User Message Bubble */
+        .chat-bubble.user {
+            align-self: flex-end;
+            max-width: 88%;
+            background-color: #e8f0fe;
+            color: #041e49;
+            padding: 11px 16px;
+            border-radius: 18px 18px 4px 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            font-weight: 500;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        /* Assistant Response Card */
+        .chat-bubble.assistant {
+            align-self: flex-start;
+            width: 100%;
+            background: #ffffff;
+            border-radius: var(--radius-md);
+            padding: 16px 18px;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1f1f1f;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* System Info Bubble */
+        .chat-bubble.system {
+            align-self: center;
+            background-color: #f8fafd;
+            color: #444746;
+            font-size: 12.5px;
+            line-height: 1.5;
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1px solid var(--gm-sys-color-outline-variant);
+            text-align: center;
+            max-width: 92%;
+            white-space: pre-wrap;
+        }
+
+        /* Error Message Bubble */
+        .chat-bubble.error {
+            align-self: center;
+            background-color: #fdf2f2;
+            color: #b3261e;
+            font-size: 12.5px;
+            line-height: 1.5;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid #f9d7d7;
+            text-align: left;
+            width: 100%;
+            max-width: 100%;
+            white-space: pre-wrap;
+            box-shadow: 0 1px 3px rgba(179, 38, 30, 0.08);
+        }
+
+        /* Assistant Content Formatting - Workspace Scaled */
+        .chat-bubble.assistant h1, .chat-bubble.assistant h2, .chat-bubble.assistant h3 {
+            color: #1f1f1f;
+            font-weight: 600;
+            margin-top: 10px;
+            margin-bottom: 6px;
+        }
+        .chat-bubble.assistant h1 { font-size: 17px; }
+        .chat-bubble.assistant h2 { font-size: 15.5px; }
+        .chat-bubble.assistant h3 { font-size: 14.5px; }
+        .chat-bubble.assistant p { margin: 6px 0; font-size: 14px; }
+        .chat-bubble.assistant ul, .chat-bubble.assistant ol { padding-left: 20px; margin: 6px 0; }
+        .chat-bubble.assistant li { margin-bottom: 4px; font-size: 14px; }
+        .chat-bubble.assistant code {
+            background-color: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            font-size: 12.5px;
+            color: #b3261e;
+        }
+        .chat-bubble.assistant pre {
+            background-color: #1f1f1f;
+            color: #f8fafd;
+            padding: 12px 14px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-family: Consolas, monospace;
+            font-size: 12.5px;
+        }
+        .chat-bubble.assistant blockquote {
+            margin: 8px 0;
+            padding: 10px 14px;
+            background-color: #f0f6ff;
+            border-left: 3px solid #1a73e8;
+            border-radius: 4px;
+            color: #1557b0;
+            font-size: 13.5px;
+        }
+        .chat-bubble.assistant blockquote p { margin: 0; }
+
+        /* Clean Modern Tables */
+        .chat-bubble.assistant table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #e0e2e0;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 12.5px;
+            margin: 8px 0;
+        }
+        .chat-bubble.assistant th {
+            background: #f8fafd;
+            padding: 8px 10px;
+            font-weight: 600;
+            text-align: left;
+            color: #444746;
+            border-bottom: 1px solid #e0e2e0;
+        }
+        .chat-bubble.assistant td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f0f2f0;
+            color: #1f1f1f;
+        }
+        .chat-bubble.assistant tr:last-child td { border-bottom: none; }
+
+        /* Strictly Outlook-Scoped Table Horizontal Scrollbar & Compact Action Buttons */
+        body.host-outlook .table-scroll-wrapper {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #e0e2e0;
+        }
+        body.host-outlook .chat-bubble.assistant .table-scroll-wrapper table {
+            width: max-content;
+            min-width: 100%;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0;
+        }
+        body.host-outlook .chat-bubble.assistant th {
+            white-space: nowrap;
+            overflow-wrap: normal;
+            word-break: normal;
+        }
+        body.host-outlook .chat-bubble.assistant td {
+            min-width: 95px;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        body.host-outlook .response-actions-container {
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        body.host-outlook .footer-primary-actions {
+            flex-wrap: wrap;
+            gap: 6px;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        body.host-outlook .pill-btn {
+            padding: 5px 10px;
+            font-size: 11.5px;
+            line-height: 1.25;
+            gap: 4px;
+        }
+
+        /* Inline Citations */
+        .inline-citation {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #e8f0fe;
+            color: #1a73e8;
+            font-weight: 600;
+            font-size: 11px;
+            padding: 1px 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            vertical-align: super;
+            margin: 0 2px;
+            transition: all 0.15s ease;
+        }
+        .inline-citation:hover {
+            background: #1a73e8;
+            color: #ffffff;
+        }
+
+        /* Grounded Citations Section */
+        .citation-container {
+            border-top: 1px solid #f0f2f0;
+            padding-top: 10px;
+            margin-top: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .citation-header {
+            font-size: 11px;
+            font-weight: 600;
+            color: #5f6368;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .citation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+        .citation-card {
+            background: #f8fafd;
+            border: 1px solid #e2e7ef;
+            border-radius: 8px;
+            overflow: hidden;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        .citation-card:hover { border-color: #1a73e8; }
+        .citation-card.highlighted {
+            background-color: #e8f0fe;
+            border-color: #1a73e8;
+            box-shadow: 0 0 0 2px rgba(26,115,232,0.3);
+        }
+        .citation-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 7px 11px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .citation-card-title {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: #1a73e8;
+            font-weight: 500;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .citation-card-index {
+            background: #1a73e8;
+            color: #ffffff;
+            border-radius: 50%;
+            width: 17px;
+            height: 17px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+            font-weight: bold;
+        }
+        .citation-toggle-icon {
+            font-size: 10px;
+            color: #5f6368;
+            transition: transform 0.2s ease;
+        }
+        .citation-card.expanded .citation-toggle-icon { transform: rotate(180deg); }
+        .citation-card-body {
+            display: none;
+            padding: 9px 11px;
+            border-top: 1px solid #e8eaed;
+            background: #ffffff;
+        }
+        .citation-card.expanded .citation-card-body { display: block; }
+        .citation-excerpt {
+            font-style: italic;
+            color: #444746;
+            font-size: 12px;
+            border-left: 3px solid #1a73e8;
+            padding: 5px 9px;
+            line-height: 1.45;
+            max-height: 130px;
+            overflow-y: auto;
+        }
+        .citation-meta {
+            margin-top: 7px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #5f6368;
+        }
+
+        /* Action Toolbar (Google Docs Style) */
+        .response-actions-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-top: 10px;
+            margin-top: 4px;
+            border-top: 1px solid #f0f2f0;
+            position: relative;
+        }
+        .footer-primary-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 7px;
+            position: relative;
+        }
+        .pill-btn {
+            border: none;
+            padding: 7px 15px;
+            border-radius: var(--radius-full);
+            font-family: 'Google Sans', sans-serif;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .pill-btn.primary {
+            background: var(--gm-sys-color-primary);
+            color: white;
+        }
+        .pill-btn.primary:hover {
+            background: var(--gm-sys-color-primary-hover);
+        }
+        .pill-btn.outlined {
+            background: white;
+            color: var(--gm-sys-color-on-surface-variant);
+            border: 1px solid var(--gm-sys-color-outline-variant);
+        }
+        .pill-btn.outlined:hover {
+            background: #f8fafd;
+            border-color: #c4c7c5;
+            color: #1f1f1f;
+        }
+        .footer-icon-actions {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gm-sys-color-on-surface-variant, #444746);
+            transition: background-color 0.15s ease, color 0.15s ease;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .icon-btn:hover {
+            background-color: rgba(0, 0, 0, 0.06);
+            color: var(--gm-sys-color-on-surface, #1f1f1f);
+        }
+
+        /* Refine Popover Dropdown */
+        .dropdown-menu {
+            position: absolute;
+            bottom: 42px;
+            left: 70px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(0,0,0,0.08);
+            width: 170px;
+            padding: 6px 0;
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+        }
+        .dropdown-menu.show { display: flex; }
+        .dropdown-item {
+            padding: 8px 14px;
+            font-size: 12.5px;
+            color: #1f1f1f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .dropdown-item:hover { background: #f1f3f4; }
+        .dropdown-divider {
+            height: 1px;
+            background: #e8eaed;
+            margin: 4px 0;
+        }
+
+        /* Dynamic Selection Quick Toolbar */
+        .selection-toolbar {
+            margin: 0 16px 8px;
+            background: #f0f4f9;
+            border: 1px solid #d3e3fd;
+            border-radius: 14px;
+            padding: 10px 12px;
+            box-shadow: 0 1px 4px rgba(11, 87, 208, 0.08);
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .selection-toolbar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .selection-toolbar-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #041e49;
+        }
+        .selection-sparkle {
+            font-size: 13px;
+        }
+        .selection-word-count {
+            font-size: 11px;
+            color: #5f6368;
+            font-weight: normal;
+        }
+        .selection-close-btn {
+            background: none;
+            border: none;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 0 4px;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+        .selection-close-btn:hover {
+            color: #b3261e;
+            background: #fce8e6;
+        }
+        .selection-preview-snippet {
+            font-size: 11.5px;
+            font-style: italic;
+            color: #444746;
+            margin-bottom: 8px;
+            max-height: 34px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-height: 1.4;
+        }
+        .selection-chips-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .selection-action-chip {
+            background: #ffffff;
+            border: 1px solid #c4c7c5;
+            border-radius: 16px;
+            padding: 4px 10px;
+            font-family: 'Google Sans', sans-serif;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: #1f1f1f;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        }
+        .selection-action-chip:hover {
+            background: #e8f0fe;
+            border-color: #0b57d0;
+            color: #041e49;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(11,87,208,0.12);
+        }
+        .selection-action-chip:active {
+            transform: translateY(0);
+        }
+
+        /* Modern Workspace Chat Box */
+        .chat-input-wrapper {
+            padding: 10px 16px 14px;
+            background: #ffffff;
+            border-top: 1px solid var(--gm-sys-color-outline-variant);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        /* Feature: Slash Commands Autocomplete Popup
+           Slash-command menu: Gemini (Material 3) theme. The menu is anchored
+           to the chat box (.chat-box-wrapper is position: relative), so it
+           opens right above the input at the same width instead of floating
+           over the suggestions. showSlashPopup() in taskpane.js caps its
+           max-height at the room left above the chat box (.main-canvas clips
+           overflow); the command list scrolls inside it. It uses the --gm-*
+           tokens, inset rounded rows and the same #e8f0fe tonal fill as the
+           diagnostics buttons for the active row. There is deliberately no
+           :hover rule: taskpane.js makes the hovered row .active
+           (onmouseenter), so a :hover highlight would leave two rows lit
+           while navigating with the arrow keys. */
+        .slash-popup {
+            position: absolute;
+            /* 8px above the chat box's 1px border; -1px lines the menu up
+               with the chat box's outer edges. */
+            bottom: calc(100% + 9px);
+            left: -1px;
+            right: -1px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--gm-sys-color-surface);
+            border: 1px solid var(--gm-sys-color-outline-variant);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            animation: slashSlideIn 0.16s ease-out;
+        }
+        @keyframes slashSlideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+        .slash-popup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            flex-shrink: 0;
+            padding: 10px 14px 6px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.1px;
+            color: var(--gm-sys-color-on-surface-variant);
+        }
+        .slash-popup-title {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .slash-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            font-size: 11px;
+            font-weight: 400;
+            color: #5f6368;
+            white-space: nowrap;
+        }
+        .slash-hint-group {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .slash-hint kbd {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 4px;
+            border: 1px solid var(--gm-sys-color-outline-variant);
+            border-radius: 6px;
+            background: var(--gm-sys-color-surface-container);
+            font-family: inherit;
+            font-size: 10.5px;
+            font-weight: 500;
+            line-height: 1;
+            color: var(--gm-sys-color-on-surface-variant);
+        }
+        .slash-commands-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-height: 0; /* lets the list shrink and scroll when the menu is height-capped */
+            max-height: 232px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            margin: 0;
+            padding: 0 6px 6px;
+            list-style: none;
+        }
+        .slash-command-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.12s ease;
+        }
+        .slash-command-item.active { background-color: #e8f0fe; }
+        .slash-command-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            background: var(--gm-sys-color-surface-container);
+            font-size: 16px;
+            line-height: 1;
+            transition: background-color 0.12s ease;
+        }
+        .slash-command-details {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-width: 0;
+        }
+        .slash-command-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .slash-command-name {
+            flex-shrink: 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gm-sys-color-on-surface);
+            white-space: nowrap;
+        }
+        .slash-command-label {
+            min-width: 0;
+            padding: 1px 8px;
+            border-radius: var(--radius-full);
+            background: var(--gm-sys-color-surface-container);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--gm-sys-color-on-surface-variant);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: background-color 0.12s ease;
+        }
+        .slash-command-item.active .slash-command-icon,
+        .slash-command-item.active .slash-command-label { background: var(--gm-sys-color-surface); }
+        .slash-command-desc {
+            margin-top: 2px;
+            font-size: 12px;
+            line-height: 1.35;
+            color: var(--gm-sys-color-on-surface-variant);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .slash-empty-item {
+            padding: 12px 10px 14px;
+            font-size: 12.5px;
+            color: #5f6368;
+            text-align: center;
+        }
+        /* Narrow panes: keep the keycaps, drop their captions so the title fits. */
+        @media (max-width: 350px) {
+            .slash-hint-label { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .slash-popup { animation: none; }
+            .slash-command-item, .slash-command-icon, .slash-command-label { transition: none; }
+        }
+        .loading-indicator {
+            display: none;
+            font-size: 12.5px;
+            color: #1a73e8;
+            font-weight: 500;
+            padding-bottom: 7px;
+            align-items: center;
+            gap: 6px;
+        }
+        /* Docs-Style Chat Box Wrapper */
+        .chat-box-wrapper {
+            width: 100%;
+            position: relative; /* anchors the slash-command menu (.slash-popup) */
+            border: 1px solid #c4c7c5;
+            border-radius: 18px;
+            background: #ffffff;
+            padding: 12px 14px 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .chat-box-wrapper:focus-within {
+            border-color: #0b57d0;
+            box-shadow: 0 1px 3px rgba(11, 87, 208, 0.15);
+        }
+
+        /* Attachment Chip inside chat box */
+        .attachment-chip-container {
+            padding-bottom: 2px;
+        }
+        .attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #edf2fa;
+            border: 1px solid #d3e3fd;
+            border-radius: 16px;
+            padding: 4px 10px;
+            font-size: 12px;
+            color: #041e49;
+            font-weight: 500;
+            width: fit-content;
+        }
+        .attachment-name {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .close-chip {
+            background: none;
+            border: none;
+            color: #5f6368;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            padding: 0 2px;
+        }
+        .close-chip:hover { color: #b3261e; }
+
+        .chat-input-area {
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+        }
+        .chat-textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 14.5px;
+            color: #1f1f1f;
+            outline: none;
+            resize: none;
+            min-height: 24px;
+            max-height: 110px;
+            line-height: 1.45;
+            padding: 0;
+        }
+        .chat-textarea::placeholder {
+            color: #5f6368;
+            font-size: 14.5px;
+        }
+
+        /* Bottom Action Controls in Chat Box */
+        .chat-box-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2px;
+        }
+        .left-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .box-action-btn {
+            background: transparent;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444746;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .box-action-btn:hover {
+            background: #f1f3f4;
+            color: #1f1f1f;
+        }
+
+        /* Circular Send Button with Up Arrow */
+        .send-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e3e3e3;
+            color: #8e8e8e;
+            cursor: not-allowed;
+            transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+        }
+        .send-btn.active {
+            background: #0b57d0;
+            color: #ffffff;
+            cursor: pointer;
+        }
+        .send-btn.active:hover {
+            background: #0842a0;
+            transform: scale(1.05);
+        }
+        .send-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Bottom Disclaimer */
+        .bottom-disclaimer {
+            text-align: center;
+            font-size: 11.5px;
+            color: #5f6368;
+            margin-top: 10px;
+            margin-bottom: 2px;
+        }
+        .bottom-disclaimer a {
+            color: #5f6368;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .bottom-disclaimer a:hover {
+            color: #1f1f1f;
+        }
+
+        /* ========================================= */
+        /* Recent Chat Pane (Google Workspace Docs)  */
+        /* ========================================= */
+        .recent-chats-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform 0.22s cubic-bezier(0, 0, 0.2, 1);
+        }
+        .recent-chats-view.open {
+            transform: translateX(0);
+        }
+        .recent-top-bar {
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            flex-shrink: 0;
+        }
+        .recent-top-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-icon-btn {
+            background: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444746;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+        .nav-icon-btn:hover {
+            background: #f1f3f4;
+            color: #1f1f1f;
+        }
+        .recent-section-header {
+            padding: 14px 20px 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+        .recent-label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1f1f1f;
+            letter-spacing: -0.1px;
+        }
+        .view-all-link {
+            font-size: 13px;
+            font-weight: 500;
+            color: #444746;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .view-all-link:hover {
+            color: #1f1f1f;
+            text-decoration: underline;
+        }
+        .recent-items-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .recent-section-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #5f6368;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 12px 20px 4px 20px;
+        }
+        .recent-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 11px 20px;
+            cursor: pointer;
+            transition: background 0.12s ease;
+            user-select: none;
+            position: relative;
+        }
+        .recent-row:hover {
+            background: #f8fafd;
+        }
+        .recent-row.active {
+            background: #e8f0fe;
+        }
+        .recent-row-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #444746;
+            flex-shrink: 0;
+        }
+        .recent-row-text {
+            flex: 1;
+            font-size: 13.5px;
+            color: #1f1f1f;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+        .recent-row-del {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #5f6368;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .recent-row:hover .recent-row-del {
+            display: flex;
+            align-items: center;
+        }
+        .recent-row-del:hover {
+            color: #b3261e;
+            background: #fce8e6;
+        }
+        .recent-bottom-divider {
+            border-bottom: 1px solid #e1e3e1;
+            margin: 8px 20px 20px;
+        }
+
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1f1f1f;
+            color: white;
+            padding: 9px 18px;
+            border-radius: 20px;
+            font-size: 12.5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 9999;
+        }
+        .toast.show { opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- Top Header Bar: Google Workspace / Docs Style -->
+    <div class="top-header">
+        <div class="header-left">
+            <!-- ☰ Hamburger Menu Button (opens Recent chat) -->
+            <button class="menu-btn" id="menuBtn" title="Recent chat" aria-label="Recent chat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+
+            <!-- Gemini Logo (Circular blue badge with diamond star) & Title -->
+            <div class="brand-container">
+                <div class="gemini-logo">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2C12 7.5 7.5 12 2 12C7.5 12 12 16.5 12 22C12 16.5 16.5 12 22 12C16.5 12 12 7.5 12 2Z" fill="#0b57d0" />
+                    </svg>
+                </div>
+                <span class="brand-title">Gemini</span>
+            </div>
+        </div>
+
+        <!-- Header Right: New Conversation Button -->
+        <div class="header-right">
+            <button class="header-icon-btn new-chat-btn" id="clearSession" title="New conversation" aria-label="New conversation">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 5v14M5 12h14"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- SSO Authenticated Identity Indicator & Google Connector -->
+    <div class="user-auth-bar" id="userAuthBar" title="Microsoft 365 Single Sign-On Identity">
+        <div class="user-identity-container" aria-live="polite">
+            <!-- "pending" shows a spinner until initAuthUI() sets the real state. -->
+            <span class="user-status-dot pending" id="userStatusDot" title="Microsoft 365 Status"></span>
+            <span class="user-email-text pending" id="userEmailText">Connecting to Office SSO...</span>
+        </div>
+        <div class="user-auth-actions">
+            <button type="button" class="google-drive-btn" id="googleDriveBtn" style="display: none;" title="Identity Status">Connecting...</button>
+        </div>
+    </div>
+
+    <!-- Outlook Specific UI Container (Active when hosted in Outlook) -->
+    <div id="outlookHostContainer" style="display: none; flex-direction: column; flex: 1; min-height: 0; padding: 8px 14px 12px; overflow-y: auto;">
+        <!-- 5-Tab Segmented Pill Navigation -->
+        <div class="outlook-tabs-nav">
+            <button class="tab-btn active" id="tabBtnSummarize">📑 Summarize</button>
+            <button class="tab-btn" id="tabBtnReply">✍️ Reply</button>
+            <button class="tab-btn" id="tabBtnCoach">🎯 Coach</button>
+            <button class="tab-btn" id="tabBtnActionItems">✅ Actions</button>
+            <button class="tab-btn" id="tabBtnAsk">💬 Ask</button>
+        </div>
+
+        <!-- Tab 1: Summarize -->
+        <div class="outlook-tab-panel active" id="panelSummarize">
+            <div class="panel-desc">Summarize this email thread into a 3-bullet executive briefing with assigned action items.</div>
+            <button id="btnSummarizeThread" class="outlook-primary-btn">⚡ Summarize Thread</button>
+            <div id="summarizeLoading" class="outlook-loading" style="display: none;">⚡ Reading email context and streaming executive briefing...</div>
+            <div id="summarizeResultCard" class="outlook-result-card" style="display: none;">
+                <div id="summarizeResultBody" class="outlook-result-body"></div>
+                <div class="outlook-actions-bar">
+                    <button id="btnCopySummary" class="outlook-action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy Summary</button>
+                    <button id="btnReplySummary" class="outlook-action-btn">👥 Reply All with Summary</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Reply (OUT-02: Grounded Smart Reply Drafter) -->
+        <div class="outlook-tab-panel" id="panelReply" style="display: none;">
+            <div class="panel-desc">Draft an email reply grounded in contract data stores citing exact SLA terms and enterprise facts.</div>
+            <textarea id="replyIntentText" class="outlook-textarea" placeholder="Enter key points or SLA terms to address, e.g. 'Clarify 99.9% uptime SLA and P1 response windows'"></textarea>
+            <div class="outlook-tone-bar">
+                <span class="tone-label">Tone:</span>
+                <button class="tone-pill active" data-tone="Professional">Professional</button>
+                <button class="tone-pill" data-tone="Concise">Concise</button>
+                <button class="tone-pill" data-tone="Friendly">Friendly</button>
+            </div>
+            <button id="btnGenerateReply" class="outlook-primary-btn">⚡ Draft Grounded Reply</button>
+            <div id="replyLoading" class="outlook-loading" style="display: none;">⚡ Querying contract data store & drafting grounded reply...</div>
+            <div id="replyResultCard" class="outlook-result-card" style="display: none;">
+                <div id="replyResultBody" class="outlook-result-body"></div>
+                <div class="outlook-actions-bar">
+                    <button id="btnOpenReplyAll" class="outlook-action-btn primary-action">👥 Open Reply All</button>
+                    <button id="btnOpenReply" class="outlook-action-btn">↩️ Open Reply</button>
+                    <button id="btnCopyReply" class="outlook-action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy Draft</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 3: Coach My Email (OUT-04) -->
+        <div class="outlook-tab-panel" id="panelCoach" style="display: none;">
+            <div class="panel-desc">Review draft tone & clarity before sending to avoid deal miscommunication.</div>
+            <button id="btnCoachEmail" class="outlook-primary-btn">🎯 Coach My Email</button>
+            <div id="coachLoading" class="outlook-loading" style="display: none;">⚡ Analyzing draft tone & generating executive and diplomatic options...</div>
+            <div id="coachResultContainer" class="outlook-result-card" style="display: none;">
+                <div id="coachAnalysisBox" class="coach-analysis-card"></div>
+                <div class="coach-options-wrapper">
+                    <!-- Option A Card: Concise Executive -->
+                    <div class="coach-option-card" id="coachOptionACard">
+                        <div class="coach-option-header">
+                            <span class="coach-option-badge badge-executive">⚡ Option A: Concise Executive</span>
+                            <span class="coach-option-sub">Direct, high-impact, brevity-focused</span>
+                        </div>
+                        <div class="coach-option-body" id="coachOptionABody"></div>
+                        <div class="coach-option-actions">
+                            <button id="btnApplyOptionA" class="outlook-action-btn primary-action">✨ Apply Concise Executive</button>
+                            <button id="btnCopyOptionA" class="outlook-action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy</button>
+                        </div>
+                    </div>
+                    <!-- Option B Card: Diplomatic -->
+                    <div class="coach-option-card" id="coachOptionBCard">
+                        <div class="coach-option-header">
+                            <span class="coach-option-badge badge-diplomatic">🤝 Option B: Diplomatic</span>
+                            <span class="coach-option-sub">Relationship-preserving, collaborative</span>
+                        </div>
+                        <div class="coach-option-body" id="coachOptionBBody"></div>
+                        <div class="coach-option-actions">
+                            <button id="btnApplyOptionB" class="outlook-action-btn primary-action">🤝 Apply Diplomatic</button>
+                            <button id="btnCopyOptionB" class="outlook-action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 4: Meeting Agenda & Action Items (OUT-03) -->
+        <div class="outlook-tab-panel" id="panelActionItems" style="display: none;">
+            <div class="panel-desc">Generate pre-meeting briefing notes, bulleted agendas, and extract action items grounded in enterprise records.</div>
+            <button id="btnPrepareBriefing" class="outlook-primary-btn">📅 Prepare Meeting Briefing</button>
+            <button id="btnExtractActionItems" class="outlook-action-btn" style="width: 100%; justify-content: center; padding: 7px 10px;">⚡ Extract Action Items & Dates</button>
+            <div id="actionItemsLoading" class="outlook-loading" style="display: none;">⚡ Querying data store & preparing meeting briefing notes...</div>
+            <div id="actionItemsResultCard" class="outlook-result-card" style="display: none;">
+                <div id="actionItemsResultBody" class="outlook-result-body"></div>
+                <div class="outlook-actions-bar">
+                    <button id="btnCreateCalendarInvite" class="outlook-action-btn">📅 Create Calendar Invite</button>
+                    <button id="btnCopyActionItems" class="outlook-action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy Output</button>
+                    <button id="btnInsertActionItems" class="outlook-action-btn">➕ Insert in Email</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 5: Ask -->
+        <div class="outlook-tab-panel" id="panelAsk" style="display: none;">
+            <div class="panel-desc">Ask any question grounded in the active email thread.</div>
+            <textarea id="askQuestionText" class="outlook-textarea" placeholder="Ask anything about this email..."></textarea>
+            <button id="btnAskGemini" class="outlook-primary-btn">✨ Ask Gemini</button>
+            <div id="askLoading" class="outlook-loading" style="display: none;">⚡ Gemini is thinking...</div>
+            <div id="askResultCard" class="outlook-result-card" style="display: none;">
+                <div id="askResultBody" class="outlook-result-body"></div>
+                <div class="outlook-actions-bar">
+                    <button id="btnCopyAnswer" class="outlook-action-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: -2px; margin-right: 4px;"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>Copy Answer</button>
+                    <button id="btnInsertAnswer" class="outlook-action-btn">➕ Insert at Cursor</button>
+                    <button id="btnReplyAnswer" class="outlook-action-btn">↩️ Reply with Answer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Host Container (Word, PowerPoint, Excel) -->
+    <div id="officeDocHostContainer" style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+    <!-- Excel Dynamic Schema Preview Container (2-Row Structured Header) -->
+    <div id="excelSchemaPreview" style="display: none;">
+        <div class="schema-row primary-row">
+            <span id="sheetSchemaBadge" class="excel-pill schema-info" title="Worksheet Grid Schema">📄 Sheet (Ready)</span>
+            <span id="targetRangeBadge" class="excel-pill target-cell" title="Target Cell: A1">🎯 Target Cell: A1</span>
+        </div>
+        <div class="schema-row chart-row" id="targetChartRow" style="display: none;">
+            <span id="targetChartBadge" class="excel-pill target-chart" title="Target Chart">
+                <span id="targetChartText">📊 Chart</span>
+                <button id="removeTargetChartBtn" class="chip-close-btn" title="Remove chart from context">&times;</button>
+            </span>
+        </div>
+    </div>
+
+    <!-- Feature 1: Adaptive Context & Action Bar (PowerPoint & Excel) -->
+    <details class="doc-tools-bar" id="docToolsBar" open style="display: none;">
+        <summary class="doc-tools-title" id="docToolsToggle">
+            <span class="doc-tools-title-left">
+                <svg class="doc-tools-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+                <span id="docToolsTitle">⚡ <strong>Chat Assistant:</strong></span>
+            </span>
+            <span id="debugStatus">Connecting...</span>
+        </summary>
+        <div class="chips-container" id="docToolsChipsContainer">
+            <button class="quick-chip" id="chipSummarize">📑 Summarize Doc</button>
+            <button class="quick-chip" id="chipRisks">⚠️ Key Risks</button>
+            <button class="quick-chip" id="chipActionItems">✅ Action Items</button>
+            <button class="quick-chip" id="chipExecBox">💡 Executive Card</button>
+        </div>
+    </details>
+
+    <!-- Clean Main Canvas -->
+    <div class="main-canvas" id="mainCanvas">
+        <!-- Centered Gradient Capability Headline (Empty state) -->
+        <div class="center-hero" id="centerHero">
+            <h1 class="gradient-headline" id="headlineText">Create custom images</h1>
+        </div>
+
+        <!-- Scrollable Chat History (Active conversation) -->
+        <div id="chatHistory" style="display: none;"></div>
+
+        <!-- Bottom Container (Suggestions, Toolbar, Chat Box, Disclaimer) -->
+        <div class="bottom-container" id="bottomContainer">
+            <!-- Suggestion Starters List (Bottom, above chat box in empty state) -->
+            <div class="suggestions-container" id="suggestionsContainer">
+                <div class="suggestion-item" data-suggestion="What can Gemini do in Microsoft Word">
+                    <span class="return-arrow">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 10 4 15 9 20"></polyline>
+                            <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                        </svg>
+                    </span>
+                    <span>What can Gemini do in Microsoft Word</span>
+                </div>
+
+                <div class="suggestion-item" data-suggestion="Create an outline for a pitch">
+                    <span class="return-arrow">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 10 4 15 9 20"></polyline>
+                            <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                        </svg>
+                    </span>
+                    <span>Create an outline for a pitch</span>
+                </div>
+
+                <div class="suggestion-item" data-suggestion="Brainstorm a list of ideas">
+                    <span class="return-arrow">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 10 4 15 9 20"></polyline>
+                            <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+                        </svg>
+                    </span>
+                    <span>Brainstorm a list of ideas</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Selection Quick Toolbar with Rewrite Options -->
+            <div id="selectionToolbar" class="selection-toolbar" style="display: none;">
+                <div class="selection-toolbar-header">
+                    <div class="selection-toolbar-title">
+                        <span class="selection-sparkle">✨</span>
+                        <span id="selectionTitle">Selected Text Detected</span>
+                        <span class="selection-word-count" id="selectionWordCount">(0 words)</span>
+                    </div>
+                    <button class="selection-close-btn" id="clearSelectionToolbarBtn" title="Dismiss selection">&times;</button>
+                </div>
+                <div id="selectionPreviewText" class="selection-preview-snippet">"..."</div>
+                <div class="selection-chips-row">
+                    <button class="selection-action-chip" id="selRewrite">🔄 Rewrite</button>
+                    <button class="selection-action-chip" id="selFormal">👔 Formal tone</button>
+                    <button class="selection-action-chip" id="selCasual">☕ Casual tone</button>
+                    <button class="selection-action-chip" id="selShorten">📉 Shorten</button>
+                    <button class="selection-action-chip" id="selElaborate">📈 Elaborate</button>
+                    <button class="selection-action-chip" id="selBullets">🎯 Bullet points</button>
+                    <button class="selection-action-chip" id="selTable">📊 Table</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading-indicator">⚡ Gemini is thinking...</div>
+
+            <!-- Docs-Style Rounded Chat Box -->
+            <div class="chat-box-wrapper" id="chatBoxWrapper">
+                <!-- Slash Commands Autocomplete Popup (absolutely positioned just above the chat box) -->
+                <div id="slashCommandsPopup" class="slash-popup" style="display: none;">
+                    <div class="slash-popup-header">
+                        <span class="slash-popup-title">Slash commands</span>
+                        <span class="slash-hint">
+                            <span class="slash-hint-group"><kbd>↑</kbd><kbd>↓</kbd> <span class="slash-hint-label">navigate</span></span>
+                            <span class="slash-hint-group"><kbd>↵</kbd> <span class="slash-hint-label">select</span></span>
+                        </span>
+                    </div>
+                    <div id="slashCommandsList" class="slash-commands-list" role="listbox" aria-label="Slash commands"></div>
+                </div>
+
+                <!-- Optional File Attachment Chip -->
+                <div id="attachmentContainer" class="attachment-chip-container" style="display: none;">
+                    <div class="attachment-chip">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
+                        </svg>
+                        <span id="attachmentName" class="attachment-name">document.docx</span>
+                        <button id="removeAttachmentBtn" class="close-chip" title="Remove attachment">&times;</button>
+                    </div>
+                </div>
+
+                <!-- Hidden File Input for document upload -->
+                <input type="file" id="fileUploadInput" accept=".docx,.doc,.txt,.pdf,.xlsx,.csv,.pptx" style="display:none;" />
+
+                <!-- Prompt Textarea -->
+                <div class="chat-input-area">
+                    <textarea id="promptText" class="chat-textarea" rows="1" placeholder="Ask Gemini"></textarea>
+                </div>
+
+                <!-- Bottom Row inside Chat Box: + Upload Document and Send Button -->
+                <div class="chat-box-actions">
+                    <div class="left-actions">
+                        <button class="box-action-btn" id="uploadDocBtn" title="Add document or context">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="right-actions">
+                        <button id="run" class="send-btn" title="Send">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="12" y1="19" x2="12" y2="5"></line>
+                                <polyline points="5 12 12 5 19 12"></polyline>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Context Attachment Pill: Sleek, compact indicator that shows when slides or text are selected -->
+            <div id="selectionAttachmentPill" style="display: none; margin-top: 6px;">
+                <div class="selection-pill-content">
+                    <span>📌</span>
+                    <span id="selectionPillLabel">Attached Context: Slide 1</span>
+                </div>
+                <button id="clearSelectionBtn" class="selection-pill-close" title="Clear selection context">✕</button>
+            </div>
+
+            <!-- Hidden File Input for "Transform Doc to Deck" -->
+            <input type="file" id="docToDeckFileInput" multiple accept=".docx,.pdf,.doc,.txt,.md,.rtf" style="display:none;" />
+
+            <!-- Footer Disclaimer -->
+            <div class="bottom-disclaimer">
+                Gemini can make mistakes. <a id="learnMoreLink" href="#">Learn more</a>
+            </div>
+
+            <!-- Feature 4: Collapsible Troubleshooting & Diagnostics Panel -->
+            <details class="troubleshoot-panel" id="troubleshootPanel">
+                <summary class="troubleshoot-summary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                    <span>Troubleshooting &amp; Diagnostics</span>
+                    <svg class="troubleshoot-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </summary>
+                <div class="troubleshoot-content">
+                    <div class="diag-group">
+                        <div class="diag-title">Microsoft 365 Entra SSO</div>
+                        <div class="diag-row"><span>Status:</span> <strong id="diagSsoStatus">Checking...</strong></div>
+                        <div class="diag-row"><span>User:</span> <span id="diagSsoUser">--</span></div>
+                        <div class="diag-row"><span>Tenant:</span> <span id="diagSsoTenant">--</span></div>
+                        <div class="diag-actions">
+                            <button class="diag-btn" id="diagRefreshSso">🔄 Refresh SSO Token</button>
+                        </div>
+                    </div>
+
+                    <div class="diag-group">
+                        <div class="diag-title">Google Identity & OAuth</div>
+                        <div class="diag-row"><span>Status:</span> <strong id="diagGoogleStatus">Not Connected</strong></div>
+                        <div class="diag-row"><span>Client ID:</span> <span id="diagGoogleClientId">--</span></div>
+                        <div class="diag-row"><span>Token Expiry:</span> <span id="diagGoogleExpiry">--</span></div>
+                        <div class="diag-actions">
+                            <button class="diag-btn" id="diagSignInGoogle">🔑 Sign In with Google</button>
+                            <button class="diag-btn secondary" id="diagClearGoogle">🗑️ Clear Token</button>
+                        </div>
+                    </div>
+
+                    <div class="diag-group">
+                        <div class="diag-title">Backend Gateway & Environment</div>
+                        <div class="diag-row"><span>Auth Proxy:</span> <span id="diagProxyUrl">--</span></div>
+                        <div class="diag-row"><span>Auth Mode:</span> <span id="diagAuthMode">--</span></div>
+                        <div class="diag-row"><span>Project ID:</span> <span id="diagProjectId">--</span></div>
+                        <div class="diag-actions">
+                            <button class="diag-btn" id="diagPingBackend">📡 Test Connection</button>
+                        </div>
+                    </div>
+                    
+                    <div class="diag-group" id="diagPptGroup">
+                        <div class="diag-title">PowerPoint & Office.js Engine</div>
+                        <div class="diag-row"><span>PowerPoint API:</span> <strong id="diagPptApiStatus">Detecting...</strong></div>
+                        <div class="diag-row"><span>Slide Engine:</span> <span id="diagPptEngineStatus">PowerPoint.run (Active)</span></div>
+                        <div class="diag-row"><span>Slide Builder:</span> <span class="build-stamp" id="buildStamp" title="Slide builder revision currently loaded in this task pane">--</span></div>
+                        <div class="diag-actions">
+                            <button class="diag-btn" id="btnDiagCheckApi">🔍 Check API Support</button>
+                            <button class="diag-btn" id="btnDiagTestSlide">🧪 Test: Add 1 Slide</button>
+                            <button class="diag-btn" id="btnDiagTestText">📝 Test: Slide + Textbox</button>
+                        </div>
+                    </div>
+                    
+                    <div class="diag-group">
+                        <div class="diag-title diag-title-row">
+                            <span>Diagnostics & Live Log Console</span>
+                            <button type="button" class="diag-link-btn" id="diagClearLog">Clear</button>
+                        </div>
+                        <pre class="diag-log-box" id="diagLogBox">[Ready] Troubleshooting initialized.</pre>
+                    </div>
+                </div>
+            </details>
+        </div>
+    </div>
+    </div>
+
+    <!-- Full Recent Chat View (matching Google Workspace Docs Gemini) -->
+    <div class="recent-chats-view" id="recentChatsView">
+        <!-- Top Bar: Back arrow, Close -->
+        <div class="recent-top-bar">
+            <button class="nav-icon-btn" id="closeRecentChatsBtn" title="Back to chat">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+
+            <div class="recent-top-right">
+                <button class="nav-icon-btn" id="closeRecentChatsCrossBtn" title="Close">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Section Header: Recent chat & View all -->
+        <div class="recent-section-header">
+            <h2 class="recent-label">Recent chat</h2>
+            <a class="view-all-link" id="viewAllChatsLink">View all</a>
+        </div>
+
+        <!-- List of Recent Chats matching user reference screenshot -->
+        <div class="recent-items-list" id="recentChatsList">
+            <div style="text-align: center; color: #5f6368; padding: 20px 16px; font-size: 13px;">Loading conversations...</div>
+        </div>
+
+        <div class="recent-bottom-divider"></div>
+    </div>
+
+    <div class="toast" id="toastMsg">Action completed!</div>
+</body>
+</html>

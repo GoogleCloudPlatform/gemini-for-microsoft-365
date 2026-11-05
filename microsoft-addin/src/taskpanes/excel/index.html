@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Gemini Excel Assistant</title>
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="shell.css" />
+    <link rel="stylesheet" href="excel.css" />
+</head>
+<body>
+    <div class="header">
+        <h3>✨ Ask Gemini <span class="header-badge excel">Enterprise</span></h3>
+        <button id="clearSession" class="secondary">New Chat</button>
+    </div>
+
+    <!-- Excel Target Worksheet, Range & Chart Preview Bar (2-Row Structured Header) -->
+    <div id="excelSchemaPreview" class="schema-preview-container">
+        <!-- Row 1: Target Worksheet (Left) and Target Cell/Range (Right - Horizontally Scrollable) -->
+        <div class="schema-row primary-row">
+            <span class="excel-pill schema-info" id="sheetSchemaBadge" title="Active Worksheet">📄 Active Worksheet</span>
+            <div class="target-range-container">
+                <span class="excel-pill target-range" id="targetRangeBadge" title="Target Range / Cell">🎯 Target: Cell Active</span>
+            </div>
+        </div>
+
+        <!-- Row 2: Selected Target Chart (Rendered directly below Row 1 when active) -->
+        <div class="schema-row chart-row" id="targetChartRow" style="display: none;">
+            <span class="excel-pill target-chart" id="targetChartBadge">
+                <span id="targetChartText">📊 Chart: Active Chart</span>
+                <button id="removeTargetChartBtn" class="chip-close-btn" title="Remove chart from context" aria-label="Remove chart target">&times;</button>
+            </span>
+        </div>
+    </div>
+
+    <!-- Spreadsheet Intelligence Quick Bar (Minimized by default) -->
+    <div class="doc-tools-bar collapsed" id="docToolsBar">
+        <div class="doc-tools-title" id="docToolsToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="docToolsChipsContainer" title="Click to show/hide spreadsheet tools">
+            <span class="doc-tools-title-text">
+                <span class="doc-tools-toggle-icon" id="docToolsToggleIcon">▶</span>
+                <span id="docToolsTitle">📊 <strong>Spreadsheet Tools & Analysis:</strong></span>
+            </span>
+            <span id="debugStatus">Excel Ready</span>
+        </div>
+        <div class="chips-container" id="docToolsChipsContainer" style="display: none;"></div>
+    </div>
+
+    <div id="chatHistory">
+        <div class="chat-bubble system" id="welcomeSystemBubble">
+            Type a prompt below, click an action above, or select cells/charts in Excel!
+        </div>
+    </div>
+
+    <div class="input-container">
+        <div id="loading">⚡ Gemini is thinking...</div>
+        <textarea id="promptText" placeholder="Ask Gemini anything, request formulas, or type instructions..."></textarea>
+        <button id="run" class="send-btn">Send</button>
+    </div>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>Google Authentication</title>
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #faf9f8;
+            color: #323130;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid #deecf9;
+            border-top: 3px solid #0078d4;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        h3 { margin: 0 0 8px 0; font-size: 16px; }
+        p { margin: 0; font-size: 13px; color: #605e5c; }
+    </style>
+</head>
+<body>
+    <div class="spinner"></div>
+    <h3>Connecting to Google...</h3>
+    <p>Redirecting to Google Sign-In for Google Drive authorization.</p>
+
+    <script>
+        (function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const clientId = urlParams.get('client_id');
+            const prompt = urlParams.get('prompt') || 'select_account';
+            
+            const redirectUri = window.location.origin + '/google-callback.html';
+            const scopes = [
+                'openid',
+                'https://www.googleapis.com/auth/userinfo.email',
+                'https://www.googleapis.com/auth/userinfo.profile',
+                'https://www.googleapis.com/auth/cloud-platform',
+                'https://www.googleapis.com/auth/drive.readonly'
+            ].join(' ');
+
+            if (!clientId) {
+                document.body.innerHTML = '<h3 style="color:#a4262c;">Configuration Error</h3><p>Google OAuth Client ID is missing. Please configure GOOGLE_OAUTH_CLIENT_ID on the proxy backend.</p>';
+                return;
+            }
+
+            let authUrl = 'https://accounts.google.com/o/oauth2/v2/auth' +
+                '?client_id=' + encodeURIComponent(clientId) +
+                '&redirect_uri=' + encodeURIComponent(redirectUri) +
+                '&response_type=token' +
+                '&scope=' + encodeURIComponent(scopes) +
+                '&include_granted_scopes=true';
+
+            // login_hint intentionally excluded to allow user account selection
+            if (prompt) {
+                authUrl += '&prompt=' + encodeURIComponent(prompt);
+            }
+
+            // Redirect to Google OAuth consent
+            window.location.href = authUrl;
+        })();
+    </script>
+</body>
+</html>

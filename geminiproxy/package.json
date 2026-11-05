@@ -1,0 +1,39 @@
+{
+  "name": "gemini-o365-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "description": "Gemini Discovery Engine Assistant Proxy for Microsoft 365 (Word, PowerPoint, Excel)",
+  "scripts": {
+    "start": "functions-framework --target=askGemini",
+    "start:enterprise": "functions-framework --target=askGeminiEnterprise",
+    "dev": "node --env-file=.env index.js",
+    "server": "node index.js"
+  },
+  "keywords": [
+    "gemini",
+    "gemini-enterprise",
+    "discovery-engine",
+    "vertex-ai",
+    "office365",
+    "powerpoint",
+    "word",
+    "excel"
+  ],
+  "author": "Sathya AG, Principal Architect, Google",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@google-cloud/aiplatform": "^6.10.0",
+    "@google-cloud/discoveryengine": "^2.9.0",
+    "@google-cloud/functions-framework": "^3.4.0",
+    "@google/genai": "^1.7.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.15.1",
+    "mammoth": "^1.12.2",
+    "pdf-parse": "^2.4.5"
+  }
+}
