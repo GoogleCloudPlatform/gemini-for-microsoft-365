@@ -1,0 +1,111 @@
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  annotations:
+    run.googleapis.com/build-enable-automatic-updates: 'false'
+    run.googleapis.com/build-id: 113e887e-0f0e-4752-a449-dcdd84854158
+    run.googleapis.com/build-image-uri: us-central1-docker.pkg.dev/agentspace-452714/cloud-run-source-deploy/askgemini-proxy
+    run.googleapis.com/build-name: projects/16933400417/locations/us-central1/builds/113e887e-0f0e-4752-a449-dcdd84854158
+    run.googleapis.com/build-source-location: gs://run-sources-agentspace-452714-us-central1/services/askgemini-proxy/1787367146.950627-6559e8f24b8a43898cb06883e39e5c67.zip#1787367147335218
+    run.googleapis.com/client-name: gcloud
+    run.googleapis.com/client-version: 576.0.0
+    run.googleapis.com/ingress: all
+    run.googleapis.com/ingress-status: all
+    run.googleapis.com/invoker-iam-disabled: 'true'
+    run.googleapis.com/maxScale: '100'
+    run.googleapis.com/operation-id: 4361adbf-8a5c-41a3-97e8-002fdc98e1be
+    run.googleapis.com/urls: '["https://askgemini-proxy-16933400417.us-central1.run.app","https://askgemini-proxy-mriilnqopa-uc.a.run.app"]'
+    serving.knative.dev/creator: admin@caugusto.altostrat.com
+    serving.knative.dev/lastModifier: admin@caugusto.altostrat.com
+  creationTimestamp: '2026-08-18T17:52:13.934759Z'
+  generation: 13
+  labels:
+    cloud.googleapis.com/location: us-central1
+  name: askgemini-proxy
+  namespace: '16933400417'
+  resourceVersion: AAZZmdxnbPQ
+  selfLink: /apis/serving.knative.dev/v1/namespaces/16933400417/services/askgemini-proxy
+  uid: 821094c3-a323-483b-ac8c-3dac03a88b9a
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: '100'
+        run.googleapis.com/client-name: gcloud
+        run.googleapis.com/client-version: 576.0.0
+        run.googleapis.com/startup-cpu-boost: 'true'
+      labels:
+        client.knative.dev/nonce: jpuvrjtsbe
+        run.googleapis.com/startupProbeType: Default
+    spec:
+      containerConcurrency: 80
+      containers:
+      - env:
+        - name: GCP_PROJECT_ID
+          value: agentspace-wif
+        - name: GEMINI_ENTERPRISE_APP_ID
+          value: instance-demos1_1774616568648
+        - name: BACKEND_MODE
+          value: streamassist
+        - name: GCP_LOCATION
+          value: global
+        - name: ENTERPRISE_COLLECTION_ID
+          value: default_collection
+        - name: ENTERPRISE_ASSISTANT_ID
+          value: default_assistant
+        - name: ALLOW_SERVICE_ACCOUNT_FALLBACK
+          value: 'true'
+        image: us-central1-docker.pkg.dev/agentspace-452714/cloud-run-source-deploy/askgemini-proxy@sha256:dd9a97399484d69aff00b2073951d73f2de0fbc2696f527718d713f2c6c74ecf
+        ports:
+        - containerPort: 8080
+          name: http1
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        startupProbe:
+          failureThreshold: 1
+          periodSeconds: 240
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 240
+      serviceAccountName: gemini-office365-sa@agentspace-452714.iam.gserviceaccount.com
+      timeoutSeconds: 300
+  traffic:
+  - latestRevision: true
+    percent: 100
+status:
+  address:
+    url: https://askgemini-proxy-mriilnqopa-uc.a.run.app
+  conditions:
+  - lastTransitionTime: '2026-08-22T02:53:42.897908Z'
+    status: 'True'
+    type: Ready
+  - lastTransitionTime: '2026-08-22T02:53:16.084374Z'
+    status: 'True'
+    type: ConfigurationsReady
+  - lastTransitionTime: '2026-08-22T02:53:42.860882Z'
+    status: 'True'
+    type: RoutesReady
+  latestCreatedRevisionName: askgemini-proxy-00012-rm7
+  latestReadyRevisionName: askgemini-proxy-00012-rm7
+  observedGeneration: 13
+  traffic:
+  - latestRevision: true
+    percent: 100
+    revisionName: askgemini-proxy-00012-rm7
+  url: https://askgemini-proxy-mriilnqopa-uc.a.run.app
