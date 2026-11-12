@@ -6,7 +6,7 @@ An enterprise-ready Microsoft 365 Add-in and Google Cloud backend that integrate
 
 ## 📽️ Demo Video
 
-https://github.com/user-attachments/assets/b40fc8ac-7771-41f0-a5cb-e97fbf9e13ed
+https://github.com/user-attachments/assets/0b3605f8-4013-4cee-a2ea-7fc5ebf6955b
 
 ---
 
